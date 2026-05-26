@@ -221,6 +221,8 @@ export default function AshaDashboard() {
                 );
               })
             )}
+          </div>
+        </div>
       </div>
 
       {/* 4. Scheme Applications tracking list */}
