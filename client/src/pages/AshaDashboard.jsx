@@ -8,10 +8,13 @@ export default function AshaDashboard() {
     language, 
     emergencies, 
     sanitationReports, 
+    schemeApplications,
     fetchEmergencies, 
     fetchSanitationReports, 
+    fetchSchemeApplications,
     resolveEmergency, 
-    resolveSanitationReport 
+    resolveSanitationReport,
+    disburseSchemeApplication
   } = useStore();
 
   const t = translations[language];
@@ -19,6 +22,7 @@ export default function AshaDashboard() {
   useEffect(() => {
     fetchEmergencies();
     fetchSanitationReports();
+    fetchSchemeApplications();
   }, [language]);
 
   // Aggregate stats from mock datasets
@@ -217,10 +221,68 @@ export default function AshaDashboard() {
                 );
               })
             )}
-          </div>
-        </div>
-
       </div>
+
+      {/* 4. Scheme Applications tracking list */}
+      <section className="bg-white border border-[#F5C6D0]/30 rounded-2xl p-6 shadow-soft space-y-4 animate-fade-in">
+        <h3 className="text-sm font-extrabold text-[#C9748F] uppercase tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+          <UserCheck className="h-5 w-5 text-emerald-500 animate-pulse" />
+          {language === 'kn' ? "ಯೋಜನೆಗಳಿಗೆ ಬಂದ ಅರ್ಜಿಗಳು" : "Active Welfare Scheme Applications"}
+        </h3>
+
+        {schemeApplications.length === 0 ? (
+          <div className="py-8 text-center bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500 font-bold">
+            No active scheme applications received yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-semibold text-slate-600 border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+                  <th className="py-2.5 px-3">Applicant Name</th>
+                  <th className="py-2.5 px-3">School & Location</th>
+                  <th className="py-2.5 px-3">Welfare Scheme</th>
+                  <th className="py-2.5 px-3">Applied Date</th>
+                  <th className="py-2.5 px-3 text-right">Status / Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schemeApplications.map(app => (
+                  <tr key={app.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all">
+                    <td className="py-3 px-3 font-extrabold text-slate-800">
+                      {app.userName}
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="font-bold text-slate-700">{app.schoolName}</div>
+                      <div className="text-[10px] text-slate-400 font-semibold">{app.village}, {app.district}</div>
+                    </td>
+                    <td className="py-3 px-3 text-rose-950 font-extrabold">
+                      {app.schemeName}
+                    </td>
+                    <td className="py-3 px-3 text-slate-400 font-semibold">
+                      {new Date(app.appliedAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      {app.status === 'disbursed' ? (
+                        <span className="inline-block bg-[#EAF7ED] text-green-800 border border-sage/50 px-2.5 py-1 rounded-lg font-bold text-[10px]">
+                          Disbursed ✓
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => disburseSchemeApplication(app.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] transition-all"
+                        >
+                          Verify & Disburse
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* Aggregate Trends public health dashboard */}
       <section className="bg-white border border-[#F5C6D0]/30 rounded-2xl p-6 shadow-soft space-y-4">

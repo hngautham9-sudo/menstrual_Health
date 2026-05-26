@@ -59,7 +59,8 @@ const memoryDb = {
       applicationSteps: ["Enroll with the local ASHA or Anganwadi worker.", "Participate in Weekly Iron Folic Acid Supplementation (WIFS) days."]
     }
   ],
-  emergencies: []
+  emergencies: [],
+  applications: []
 };
 
 // Seed initial mock user profiles
@@ -158,12 +159,30 @@ memoryDb.cycles.push(
   }
 );
 
+// Seed mock scheme applications
+memoryDb.applications = [
+  {
+    id: "app-1",
+    schemeId: "sch-suchi",
+    schemeName: "Suchi Scheme (Karnataka)",
+    userId: "user-default",
+    userName: "Gauri Gowda",
+    schoolName: "Government High School, Bilichodu",
+    village: "Bilichodu, Jagalur",
+    district: "Davanagere",
+    state: "Karnataka",
+    appliedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "pending"
+  }
+];
+
 let isConnected = false;
 
 async function seedMockData() {
   const User = require('./models/User');
   const Cycle = require('./models/Cycle');
   const SanitationReport = require('./models/SanitationReport');
+  const SchemeApplication = require('./models/SchemeApplication');
 
   try {
     // 1. Seed Users
@@ -188,6 +207,14 @@ async function seedMockData() {
       console.log("🌱 No menstrual cycle logs found. Seeding past logs...");
       await Cycle.insertMany(memoryDb.cycles);
       console.log("✅ Menstrual cycle logs seeded successfully!");
+    }
+
+    // 4. Seed Scheme Applications
+    const applicationCount = await SchemeApplication.countDocuments();
+    if (applicationCount === 0) {
+      console.log("🌱 No scheme applications found. Seeding default applications...");
+      await SchemeApplication.insertMany(memoryDb.applications);
+      console.log("✅ Scheme applications seeded successfully!");
     }
   } catch (error) {
     console.error("❌ Error while seeding database:", error.message);

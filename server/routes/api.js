@@ -8,6 +8,7 @@ const User = require('../models/User');
 const Cycle = require('../models/Cycle');
 const SanitationReport = require('../models/SanitationReport');
 const EmergencyAlert = require('../models/EmergencyAlert');
+const SchemeApplication = require('../models/SchemeApplication');
 
 // Helper to generate a basic unique id
 const generateId = (prefix) => `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
@@ -330,6 +331,93 @@ router.get('/emergency/alerts', async (req, res) => {
 
   const activeAlerts = memoryDb.emergencies.sort((a, b) => new Date(b.reportedAt) - new Date(a.reportedAt));
   res.json(activeAlerts);
+});
+
+// 12. POST Create Welfare Scheme Application
+router.post('/schemes/apply', async (req, res) => {
+  const { schemeId, schemeName, userId } = req.body;
+  if (!schemeId || !schemeName || !userId) {
+    return res.status(400).json({ error: "Scheme ID, Scheme Name, and User ID are required" });
+  }
+
+  let user;
+  if (getIsConnected()) {
+    try {
+      user = await User.findOne({ id: userId });
+    } catch (err) {}
+  }
+  if (!user) {
+    user = memoryDb.users.find(u => u.id === userId) || { name: "Anjali M.", village: "Kollegala", schoolName: "GHS School", district: "Chamarajanagar", state: "Karnataka" };
+  }
+
+  const newApp = {
+    id: generateId('app'),
+    schemeId,
+    schemeName,
+    userId,
+    userName: user.name,
+    schoolName: user.schoolName || '',
+    village: user.village || '',
+    district: user.district || '',
+    state: user.state || '',
+    appliedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  if (getIsConnected()) {
+    try {
+      const doc = await SchemeApplication.create(newApp);
+      return res.status(201).json(doc);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  memoryDb.applications.push(newApp);
+  res.status(201).json(newApp);
+});
+
+// 13. GET All Scheme Applications (for ASHA worker portal)
+router.get('/schemes/applications', async (req, res) => {
+  if (getIsConnected()) {
+    try {
+      const apps = await SchemeApplication.find({});
+      return res.json(apps.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)));
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  res.json(memoryDb.applications.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)));
+});
+
+// 14. PUT Update Scheme Application Status (Disburse scheme)
+router.put('/schemes/applications/:id', async (req, res) => {
+  const { status } = req.body;
+  if (!status) {
+    return res.status(400).json({ error: "Status is required" });
+  }
+
+  if (getIsConnected()) {
+    try {
+      const app = await SchemeApplication.findOne({ id: req.params.id });
+      if (!app) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      app.status = status;
+      await app.save();
+      return res.json(app);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  const app = memoryDb.applications.find(a => a.id === req.params.id);
+  if (!app) {
+    return res.status(404).json({ error: "Application not found" });
+  }
+  app.status = status;
+  res.json(app);
 });
 
 module.exports = router;

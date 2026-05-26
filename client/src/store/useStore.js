@@ -126,6 +126,7 @@ export const useStore = create((set, get) => ({
   // Schemes Matching State
   matchedSchemes: MOCK_SCHEMES,
   appliedSchemes: [],
+  schemeApplications: [],
 
   // Sanitation Reports State
   sanitationReports: [
@@ -402,11 +403,98 @@ export const useStore = create((set, get) => ({
     set({ matchedSchemes: filtered });
   },
 
-  applyScheme: (schemeId) => {
+  applyScheme: async (schemeId) => {
+    const user = get().user;
+    const matched = get().matchedSchemes.find(s => s.id === schemeId) || {};
+    const schemeName = matched.name || "Welfare Scheme";
+
+    try {
+      const response = await fetch(`${API_BASE}/schemes/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schemeId, schemeName, userId: user.id })
+      });
+      if (response.ok) {
+        const newApp = await response.json();
+        set(state => {
+          const newApplied = state.appliedSchemes.includes(schemeId) 
+            ? state.appliedSchemes 
+            : [...state.appliedSchemes, schemeId];
+          return {
+            appliedSchemes: newApplied,
+            schemeApplications: [newApp, ...state.schemeApplications]
+          };
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Express server offline. Applying to local scheme cache.");
+    }
+
+    // Local Fallback
+    const mockApp = {
+      id: `app-${Math.random().toString(36).substr(2, 9)}`,
+      schemeId,
+      schemeName,
+      userId: user.id,
+      userName: user.name,
+      schoolName: user.schoolName || '',
+      village: user.village || '',
+      district: user.district || '',
+      state: user.state || '',
+      appliedAt: new Date().toISOString(),
+      status: 'pending'
+    };
+
     set(state => {
-      if (state.appliedSchemes.includes(schemeId)) return state;
-      return { appliedSchemes: [...state.appliedSchemes, schemeId] };
+      const newApplied = state.appliedSchemes.includes(schemeId) 
+        ? state.appliedSchemes 
+        : [...state.appliedSchemes, schemeId];
+      return {
+        appliedSchemes: newApplied,
+        schemeApplications: [mockApp, ...state.schemeApplications]
+      };
     });
+  },
+
+  fetchSchemeApplications: async () => {
+    try {
+      const response = await fetch(`${API_BASE}/schemes/applications`);
+      if (response.ok) {
+        const apps = await response.json();
+        set({ schemeApplications: apps });
+        
+        // Sync local appliedSchemes with backend persisted records
+        const user = get().user;
+        const userApps = apps.filter(a => a.userId === user.id);
+        set({ appliedSchemes: userApps.map(a => a.schemeId) });
+      }
+    } catch (err) {
+      console.warn("Express server offline. Reading local scheme applications cache.");
+    }
+  },
+
+  disburseSchemeApplication: async (appId) => {
+    try {
+      const response = await fetch(`${API_BASE}/schemes/applications/${appId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'disbursed' })
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        set(state => ({
+          schemeApplications: state.schemeApplications.map(a => a.id === appId ? updated : a)
+        }));
+        return;
+      }
+    } catch (err) {
+      console.warn("Express server offline. Disbursing local scheme copy.");
+    }
+
+    set(state => ({
+      schemeApplications: state.schemeApplications.map(a => a.id === appId ? { ...a, status: 'disbursed' } : a)
+    }));
   },
 
   fetchSanitationReports: async () => {

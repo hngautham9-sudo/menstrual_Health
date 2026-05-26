@@ -18,11 +18,12 @@ import { Heart } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('landing'); // Default to public LandingPage on mount
-  const { language, viewMode, fetchCycles, fetchSanitationReports } = useStore();
+  const { language, viewMode, fetchCycles, fetchSanitationReports, fetchSchemeApplications } = useStore();
 
   useEffect(() => {
     fetchCycles();
     fetchSanitationReports();
+    fetchSchemeApplications();
   }, [language]);
 
   const renderContent = () => {
