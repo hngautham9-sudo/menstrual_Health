@@ -1,0 +1,19 @@
+{
+  "name": "rakshobhya-ecosystem",
+  "version": "1.0.0",
+  "description": "AI-Powered Menstrual Health & Women Empowerment Ecosystem Root",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "npx -y concurrently --kill-others \"npm run start --prefix server\" \"npm run dev --prefix client\"",
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "npm run start --prefix server",
+    "host:local": "npm run build && npx -y concurrently --kill-others \"npm run start --prefix server\" \"npx -y localtunnel --port 5000\""
+  },
+  "private": true,
+  "dependencies": {
+    "groq-sdk": "^1.2.0",
+    "mongodb": "^7.2.0"
+  }
+}

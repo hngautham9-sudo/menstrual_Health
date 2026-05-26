@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream text-slate-800 font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-medium;
+  }
+}
+
+@layer components {
+  /* Dynamic shadcn/ui inspired component rules */
+  
+  /* Buttons */
+  .btn-default {
+    @apply bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:bg-rose-600 active:scale-95 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 shadow-sm inline-flex items-center justify-center gap-2;
+  }
+
+  .btn-outline {
+    @apply bg-white border border-rose-200 text-rose-700 font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:bg-rose-50 active:scale-95 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm inline-flex items-center justify-center gap-2;
+  }
+
+  /* Cards */
+  .custom-card {
+    @apply bg-cream border border-rose-100 rounded-2xl p-6 shadow-sm transition-all duration-200 hover:scale-[1.02] hover:border-rose-200 flex flex-col justify-between;
+  }
+
+  /* Badges */
+  .badge-health {
+    @apply bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-rose-200/50 inline-flex items-center gap-1 w-fit;
+  }
+
+  .badge-safe {
+    @apply bg-sage/30 text-green-800 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-sage/50 inline-flex items-center gap-1 w-fit;
+  }
+
+  /* Inputs */
+  .custom-input {
+    @apply bg-white border border-rose-100 rounded-xl px-4 py-2.5 text-slate-700 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-all;
+  }
+
+  /* Dialog backdrop panel mockup */
+  .dialog-panel {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm;
+  }
+
+  .dialog-content {
+    @apply bg-cream border border-rose-100 rounded-3xl p-6 shadow-lg max-w-md w-full animate-slide-up space-y-4;
+  }
+
+  /* Tab elements */
+  .tabs-bar {
+    @apply flex border-b border-rose-100 gap-4;
+  }
+
+  .tab-item-active {
+    @apply border-b-2 border-rose-500 text-rose-500 font-bold px-1 py-2 text-xs transition-all;
+  }
+
+  .tab-item-inactive {
+    @apply border-b-2 border-transparent text-slate-500 font-medium px-1 py-2 text-xs transition-all hover:text-rose-400;
+  }
+
+  /* Circular avatars */
+  .custom-avatar {
+    @apply w-10 h-10 rounded-full bg-rose-200 text-mauve font-bold flex items-center justify-center shrink-0 border border-rose-300 shadow-sm overflow-hidden;
+  }
+}
+
+/* Custom premium scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-cream;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-rose-200 rounded-full hover:bg-rose-400;
+}
+
+/* Circular progression rings */
+.progress-ring-bg {
+  @apply stroke-rose-100;
+}
+
+.progress-ring-value {
+  @apply stroke-rose-500 transition-all duration-500;
+  stroke-linecap: round;
+}
