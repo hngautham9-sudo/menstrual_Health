@@ -36,27 +36,86 @@ export default function MentorPage() {
   };
 
   const handleMicPress = () => {
-    setIsRecording(true);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
-    setTimeout(() => {
-      let speechText = "";
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
       if (language === 'kn') {
-        speechText = "ಮುಟ್ಟಿನ ಸಮಯದಲ್ಲಿ ತೀವ್ರ ಹೊಟ್ಟೆನೋವು ಬಂದರೆ ಏನು ಮಾಡಬೇಕು?";
+        recognition.lang = 'kn-IN';
       } else if (language === 'hi') {
-        speechText = "पीरियड में बहुत ज्यादा पेट दर्द हो तो क्या करें?";
+        recognition.lang = 'hi-IN';
       } else {
-        speechText = "What should I do if I have severe stomach pain?";
+        recognition.lang = 'en-IN';
       }
-      setInput(speechText);
-      setIsRecording(false);
-    }, 2000);
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+      };
+
+      recognition.start();
+    } else {
+      // simulated backup fallback
+      setIsRecording(true);
+      setTimeout(() => {
+        let speechText = "";
+        if (language === 'kn') {
+          speechText = "ಮುಟ್ಟಿನ ಸಮಯದಲ್ಲಿ ತೀವ್ರ ಹೊಟ್ಟೆನೋವು ಬಂದರೆ ಏನು ಮಾಡಬೇಕು?";
+        } else if (language === 'hi') {
+          speechText = "पीरियड में बहुत ज्यादा पेट दर्द हो तो क्या करें?";
+        } else {
+          speechText = "What should I do if I have severe stomach pain?";
+        }
+        setInput(speechText);
+        setIsRecording(false);
+      }, 2000);
+    }
   };
 
-  const handlePlayVoice = (msgId) => {
-    setPlayingId(msgId);
-    setTimeout(() => {
-      setPlayingId(null);
-    }, 3000);
+  const handlePlayVoice = (msgText, msgId) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech synthesis first
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(msgText);
+      // Select appropriate local language locales
+      if (language === 'kn') {
+        utterance.lang = 'kn-IN';
+      } else if (language === 'hi') {
+        utterance.lang = 'hi-IN';
+      } else {
+        utterance.lang = 'en-IN';
+      }
+
+      utterance.onend = () => {
+        setPlayingId(null);
+      };
+
+      setPlayingId(msgId);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // simulated backup fallback
+      setPlayingId(msgId);
+      setTimeout(() => {
+        setPlayingId(null);
+      }, 3000);
+    }
   };
 
   return (
@@ -130,7 +189,7 @@ export default function MentorPage() {
                     {/* Sound button */}
                     {!isUser && (
                       <button
-                        onClick={() => handlePlayVoice(msg.id)}
+                        onClick={() => handlePlayVoice(msg.text, msg.id)}
                         className={`absolute right-2 top-2 p-1 rounded-lg text-rose-500/70 hover:text-rose-600 hover:bg-white/80 transition-all ${isPlaying ? 'animate-bounce text-rose-600' : ''}`}
                         title="Read out loud"
                       >
